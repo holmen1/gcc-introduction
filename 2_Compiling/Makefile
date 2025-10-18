@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-Wall
+CFLAGS=-std=c99 -Wall
 
 main: main.o hello_fn.o
 
