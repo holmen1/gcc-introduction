@@ -66,6 +66,20 @@ Finally, to remove the generated files, type ```make clean```.
 $ make clean
 rm -f main main.o hello_fn.o
 ```
-```
-```
+
+### Linking with external libraries
+
+A library is a collection of precompiled object files which can be linked into programs.  
+Libraries are typically stored in special *archive files* with the extension '.a',
+referred to as *static libraries*.
+
+The standard system libraries are usually found in the directories '/usr/lib' and '/lib'.
+
+To enable the compiler to link a compiled function to a program we need to supply the library.
+For example: ```$ gcc calc.c /usr/lib/libm.a -o calc```.  
+The compiler provides a short-cut option '-l' for linking against libraries.
+So ```$ gcc calc.c -lm -o calc``` is equivalent to above.
+
+In general, the compiler option '-lNAME' will attempt to link object files with a library file
+'libNAME.a' in the standard library directories.
 
