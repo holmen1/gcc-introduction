@@ -83,3 +83,49 @@ So ```$ gcc calc.c -lm -o calc``` is equivalent to above.
 In general, the compiler option '-lNAME' will attempt to link object files with a library file
 'libNAME.a' in the standard library directories.
 
+
+## Compilation options
+
+### Setting search paths
+
+When additional libraries are installed in other directories it is necessary to extend the search paths.
+
+The compiler options '-I' and '-L' add new directories to the beginning of the include path and library search path respectively. 
+
+Accidentally uninstalled gdbm :/
+```bash
+$ gcc -Wall dbmain.c -lgdbm
+dbmain.c:1:10: fatal error: gdbm.h: No such file or directory
+    1 | #include <gdbm.h>
+      |          ^~~~~~~~
+compilation terminated.
+```
+(download)[https://www.gnu.org.ua/software/gdbm/download.html] and make new
+
+Adding the appropriate directory to the include path allows the program to be compiled but not linked
+```bash
+$ gcc -Wall -I/home/holmen1/Downloads/gdbm-1.21/src dbmain.c -lgdbm
+/usr/local/bin/ld: cannot find -lgdbm: No such file or directory
+collect2: error: ld returned 1 exit status
+```
+
+Add library to link path
+```bash
+$ gcc -Wall -I/home/holmen1/Downloads/gdbm-1.21/src -L/home/holmen1/Downloads/gdbm-1.21/src/.libs dbmain.c -lgdbm
+```
+
+But
+```bash
+$ ./a.out
+ld-elf.so.1: Shared object "libgdbm.so.6" not found, required by "a.out"
+```
+This is because the GBDM package provides a *shared library*.
+This type of library requires special treatment - it must be loaded from disc before the executable will run.
+
+```bash
+$ LD_LIBRARY_PATH=/home/holmen1/Downloads/gdbm-1.21/src/.libs
+$ export LD_LIBRARY_PATH
+$ ./a.out
+Storing key-value pair... done.
+```
+
