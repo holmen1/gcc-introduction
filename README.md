@@ -88,11 +88,27 @@ In general, the compiler option '-lNAME' will attempt to link object files with 
 
 ### Setting search paths
 
+By default, gcc searches the fallowing directories for header files:
+```/usr/local/include/:/usr/include/```
+
+and the fallowing directories libraries:
+```/usr/local/lib/:/usr/lib/```
+
+
 When additional libraries are installed in other directories it is necessary to extend the search paths.
 
 The compiler options '-I' and '-L' add new directories to the beginning of the include path and library search path respectively. 
 
-Accidentally uninstalled gdbm :/
+#### GDBM example
+
+[dbmain.c](./dbmain.c)
+
+Accidentally uninstalled gdbm from standard directories :/
+
+[download](https://www.gnu.org.ua/software/gdbm/download.html) and make new
+
+
+Trying compile 
 ```bash
 $ gcc -Wall dbmain.c -lgdbm
 dbmain.c:1:10: fatal error: gdbm.h: No such file or directory
@@ -100,21 +116,58 @@ dbmain.c:1:10: fatal error: gdbm.h: No such file or directory
       |          ^~~~~~~~
 compilation terminated.
 ```
-(download)[https://www.gnu.org.ua/software/gdbm/download.html] and make new
+
+```bash
+$ find /tmp/gdbm-1.21/ -name gdbm.h
+/tmp/gdbm-1.21/src/gdbm.h
+```
 
 Adding the appropriate directory to the include path allows the program to be compiled but not linked
 ```bash
-$ gcc -Wall -I/home/holmen1/Downloads/gdbm-1.21/src dbmain.c -lgdbm
+$ gcc -Wall -I/tmp/gdbm-1.21/src dbmain.c -lgdbm
 /usr/local/bin/ld: cannot find -lgdbm: No such file or directory
 collect2: error: ld returned 1 exit status
 ```
 
-Add library to link path
 ```bash
-$ gcc -Wall -I/home/holmen1/Downloads/gdbm-1.21/src -L/home/holmen1/Downloads/gdbm-1.21/src/.libs dbmain.c -lgdbm
+$ find /tmp/gdbm-1.21/ -name libgdbm.a
+/tmp/gdbm-1.21/src/.libs/libgdbm.a
 ```
 
-But
+Add library to link path
+```bash
+$ gcc -Wall -I/tmp/gdbm-1.21/src -L/tmp/gdbm-1.21/src/.libs dbmain.c -lgdbm
+```
+Compliles and links but won't execute :/ (explained below).
+
+### Environment variables
+
+Additional directories can be added to the include and link path using
+environment variables C_INCLUDE_PATH and LIBRARY_PATH respectively:
+
+```bash
+$ C_INCLUDE_PATH=/tmp/gdbm-1.21/src
+$ export C_INCLUDE_PATH
+$ LIBRARY_PATH=/tmp/gdbm-1.21/src/.libs
+$ export LIBRARY_PATH
+```
+*export* is needed to make the environment variable available to programs
+outside the shell itself, such as the compiler.
+
+Then, we can compile and link with
+```bash
+$ gcc -Wall dbmain.c -lgdbm
+```
+
+When environment and command-line options are used together the compiler
+searches the directories in the fallowing order:
+1. command-line options '-I' and '-L', from left to right
+2. environment variables C_INCLUDE_PATH and LIBRARY_PATH
+3. default system directories
+
+### Shared vs static libraries
+
+Attempt to start the executable directly
 ```bash
 $ ./a.out
 ld-elf.so.1: Shared object "libgdbm.so.6" not found, required by "a.out"
@@ -122,10 +175,35 @@ ld-elf.so.1: Shared object "libgdbm.so.6" not found, required by "a.out"
 This is because the GBDM package provides a *shared library*.
 This type of library requires special treatment - it must be loaded from disc before the executable will run.
 
+Whenever a static library 'libNAME.a' would be used for linking with the option
+'-lNAME' the compiler first checks for an alternative with the same name and a '.so' extension.
+
+Simple solution is setting load path through environment variable
 ```bash
-$ LD_LIBRARY_PATH=/home/holmen1/Downloads/gdbm-1.21/src/.libs
+$ LD_LIBRARY_PATH=/tmp/gdbm-1.21/src/.libs
 $ export LD_LIBRARY_PATH
 $ ./a.out
 Storing key-value pair... done.
 ```
+
+Alternatively, static linking can be forced with the '-static' option
+to avoid the use of the use of shared libraries.
+
+
+```bash
+$ gcc -Wall -static dbmain.c -lgdbm
+/usr/local/bin/ld: /tmp/gdbm-1.21/src/.libs/libgdbm.a(bucket.o): in function `_gdbm_write_bucket':
+/tmp/gdbm-1.21/src/bucket.c:553:(.text+0x14d): undefined reference to `libintl_dgettext'
+/usr/local/bin/ld: /tmp/gdbm-1.21/src/.libs/libgdbm.a(bucket.o): in function `_gdbm_get_bucket':
+/tmp/gdbm-1.21/src/bucket.c:282:(.text+0x5ca): undefined reference to `libintl_dgettext'
+/usr/local/bin/ld: /tmp/gdbm-1.21/src/.libs/libgdbm.a(bucket.o): in function `_gdbm_split_bucket':
+/tmp/gdbm-1.21/src/bucket.c:421:(.text+0xca4): undefined reference to `libintl_dgettext'
+/usr/local/bin/ld: /tmp/gdbm-1.21/src/.libs/libgdbm.a(bucket.o): in function `_gdbm_fetch_data':
+/tmp/gdbm-1.21/src/bucket.c:662:(.text+0xffe): undefined reference to `libintl_dgettext'
+/usr/local/bin/ld: /tmp/gdbm-1.21/src/.libs/libgdbm.a(gdbmerrno.o): in function `gdbm_strerror':
+/tmp/gdbm-1.21/src/gdbmerrno.c:155:(.text+0x18f): undefined reference to `libintl_dgettext'
+/usr/local/bin/ld: /tmp/gdbm-1.21/src/.libs/libgdbm.a(gdbmerrno.o):/tmp/gdbm-1.21/src/gdbmerrno.c:155: more undefined references to `libintl_dgettext' follow
+collect2: error: ld returned 1 exit status
+```
+
 
