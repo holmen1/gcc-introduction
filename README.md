@@ -90,9 +90,7 @@ In general, the compiler option '-lNAME' will attempt to link object files with 
 
 By default, gcc searches the fallowing directories for header files:
 ```/usr/local/include/:/usr/include/```
-
-and the fallowing directories libraries:
-```/usr/local/lib/:/usr/lib/```
+and the fallowing directories for libraries: ```/usr/local/lib/:/usr/lib/```
 
 
 When additional libraries are installed in other directories it is necessary to extend the search paths.
@@ -101,7 +99,7 @@ The compiler options '-I' and '-L' add new directories to the beginning of the i
 
 #### GDBM example
 
-[dbmain.c](./dbmain.c)
+[dbmain.c](3_Options/dbmain.c)
 
 Accidentally uninstalled gdbm from standard directories :/
 
