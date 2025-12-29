@@ -1,10 +1,17 @@
 # An Introduction to GCC
 
-GCC is a programming tool, that's true-but it's also something more.  
-It is part of a 20-year campaign for freedom for computer users.
+My working notes based on *An Introduction to GCC* by Brian J. Gough (Network Theory Ltd, 2004).
+Content includes quotes, paraphrased sections, and original examples/annotations.
 
-Richard M. Stallman  
-February 2004
+Original book: Copyright © 2004 Network Theory Ltd.  
+Licensed under the GNU Free Documentation License v1.2 or later.
+
+> *"GCC is a programming tool, that's true—but it's also something more.  
+> It is part of a 20-year campaign for freedom for computer users."*  
+> 
+> — Richard M. Stallman, Foreword
+
+
 
 ## Compiling a C program
 ### Compiling a simple C program
@@ -88,9 +95,9 @@ In general, the compiler option '-lNAME' will attempt to link object files with 
 
 ### Setting search paths
 
-By default, gcc searches the fallowing directories for header files:
+By default, gcc searches the following directories for header files:
 ```/usr/local/include/:/usr/include/```
-and the fallowing directories for libraries: ```/usr/local/lib/:/usr/lib/```
+and the following directories for libraries: ```/usr/local/lib/:/usr/lib/```
 
 
 When additional libraries are installed in other directories it is necessary to extend the search paths.
@@ -158,7 +165,7 @@ $ gcc -Wall dbmain.c -lgdbm
 ```
 
 When environment and command-line options are used together the compiler
-searches the directories in the fallowing order:
+searches the directories in the following order:
 1. command-line options '-I' and '-L', from left to right
 2. environment variables C_INCLUDE_PATH and LIBRARY_PATH
 3. default system directories
@@ -180,6 +187,8 @@ Simple solution is setting load path through environment variable
 ```bash
 $ LD_LIBRARY_PATH=/tmp/gdbm-1.21/src/.libs
 $ export LD_LIBRARY_PATH
+```
+```bash
 $ ./a.out
 Storing key-value pair... done.
 ```
@@ -187,7 +196,47 @@ Storing key-value pair... done.
 Alternatively, static linking can be forced with the '-static' option
 to avoid the use of the use of shared libraries.
 
+```bash
+$ gcc -Wall -static -I/tmp/gdbm-1.26/src -L/tmp/gdbm-1.26/src/.libs dbmain.c -lgdbm
+$ ls -l
+total 1148
+-rwxr-xr-x 1 holmen1 holmen1 1169048 Dec 29 16:39 a.out
+-rw-r--r-- 1 holmen1 holmen1     344 Dec 29 15:13 dbmain.c
+```
 
+Static linking produces a much larger executable (1.1 MB) because the entire library code is embedded in the binary. This eliminates the need for the `.so` file at runtime.
+
+```bash
+$ gcc -Wall -I/tmp/gdbm-1.26/src -L/tmp/gdbm-1.26/src/.libs dbmain.c -lgdbm
+$ ls -l
+total 20
+-rwxr-xr-x 1 holmen1 holmen1 15600 Dec 29 16:38 a.out
+-rw-r--r-- 1 holmen1 holmen1   344 Dec 29 15:13 dbmain.c
+```
+
+Shared linking keeps the executable small (15 KB) - only linking code is included, the actual library functions are loaded from `libgdbm.so.6` at runtime.
+
+```bash
+$ ls -l /tmp/gdbm-1.26/src/.libs/libgdbm*
+-rw-r--r-- 1 holmen1 holmen1 586162 Dec 29 16:28 /tmp/gdbm-1.26/src/.libs/libgdbm.a
+-rwxr-xr-x 1 holmen1 holmen1 337152 Dec 29 16:28 /tmp/gdbm-1.26/src/.libs/libgdbm.so.6.0.0
+```
+
+**Summary: Shared vs Static**
+
+**Shared libraries (`.so`):**
+- Small executable (15 KB) - code shared across processes
+- Requires library at runtime - deployment dependency
+- Library updates benefit all programs automatically
+- Must set `LD_LIBRARY_PATH` if not in standard location
+
+**Static libraries (`.a`):**
+- Large executable (1.1 MB) - library embedded in binary
+- Self-contained - no runtime dependencies
+- Easier deployment but harder to update
+- Must manually specify all transitive dependencies during linking
+
+### FreeBSD failure (to be deleted)
 ```bash
 $ gcc -Wall -static dbmain.c -lgdbm
 /usr/local/bin/ld: /tmp/gdbm-1.21/src/.libs/libgdbm.a(bucket.o): in function `_gdbm_write_bucket':
@@ -204,4 +253,5 @@ $ gcc -Wall -static dbmain.c -lgdbm
 collect2: error: ld returned 1 exit status
 ```
 
+In this example, `libgdbm` depends on `libintl` (from GNU gettext for internationalization), which must be explicitly added with `-lintl` when using static linking.
 
