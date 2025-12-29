@@ -236,22 +236,16 @@ $ ls -l /tmp/gdbm-1.26/src/.libs/libgdbm*
 - Easier deployment but harder to update
 - Must manually specify all transitive dependencies during linking
 
-### FreeBSD failure (to be deleted)
+### FreeBSD error
 ```bash
 $ gcc -Wall -static dbmain.c -lgdbm
-/usr/local/bin/ld: /tmp/gdbm-1.21/src/.libs/libgdbm.a(bucket.o): in function `_gdbm_write_bucket':
-/tmp/gdbm-1.21/src/bucket.c:553:(.text+0x14d): undefined reference to `libintl_dgettext'
-/usr/local/bin/ld: /tmp/gdbm-1.21/src/.libs/libgdbm.a(bucket.o): in function `_gdbm_get_bucket':
-/tmp/gdbm-1.21/src/bucket.c:282:(.text+0x5ca): undefined reference to `libintl_dgettext'
-/usr/local/bin/ld: /tmp/gdbm-1.21/src/.libs/libgdbm.a(bucket.o): in function `_gdbm_split_bucket':
-/tmp/gdbm-1.21/src/bucket.c:421:(.text+0xca4): undefined reference to `libintl_dgettext'
-/usr/local/bin/ld: /tmp/gdbm-1.21/src/.libs/libgdbm.a(bucket.o): in function `_gdbm_fetch_data':
-/tmp/gdbm-1.21/src/bucket.c:662:(.text+0xffe): undefined reference to `libintl_dgettext'
-/usr/local/bin/ld: /tmp/gdbm-1.21/src/.libs/libgdbm.a(gdbmerrno.o): in function `gdbm_strerror':
+[...]
 /tmp/gdbm-1.21/src/gdbmerrno.c:155:(.text+0x18f): undefined reference to `libintl_dgettext'
 /usr/local/bin/ld: /tmp/gdbm-1.21/src/.libs/libgdbm.a(gdbmerrno.o):/tmp/gdbm-1.21/src/gdbmerrno.c:155: more undefined references to `libintl_dgettext' follow
 collect2: error: ld returned 1 exit status
 ```
-
 In this example, `libgdbm` depends on `libintl` (from GNU gettext for internationalization), which must be explicitly added with `-lintl` when using static linking.
 
+```bash
+$ gcc -Wall -static dbmain.c -lgdbm -lintl
+```
