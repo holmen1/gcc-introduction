@@ -34,7 +34,7 @@ gcc -Wall -c main.c
 ```
 This produces an object file 'main.o' containing the machine code for the main function.
 
-The final step in creating an executable file is to use ```gcc``` to link the object files together and fill in the missing addresses of external functions.
+The final step in creating an executable file is to use `gcc` to link the object files together and fill in the missing addresses of external functions.
 ```
 gcc main.o hello_fn.o -o hello
 ```
@@ -53,7 +53,7 @@ main: main.o hello_fn.o
 clean:
 	rm -f main main.o hello_fn.o
 ```
-The file can be read like this: using the C compiler gcc, with compilation options '-std=c99 -Wall', build the target executable ```main```
+The file can be read like this: using the C compiler `gcc`, with compilation options '-std=c99 -Wall', build the target executable ```main```
 from the object files 'main.o' and 'hello_fn.o' (these in turn, will be built via implicit rules from 'main.c' and 'hello_fn.c').
 
 To use the makefile, type ```make```.
@@ -95,7 +95,7 @@ In general, the compiler option '-lNAME' will attempt to link object files with 
 
 ### Setting search paths
 
-By default, gcc searches the following directories for header files:
+By default, `gcc` searches the following directories for header files:
 ```/usr/local/include/:/usr/include/```
 and the following directories for libraries: ```/usr/local/lib/:/usr/lib/```
 
@@ -156,7 +156,7 @@ $ export C_INCLUDE_PATH
 $ LIBRARY_PATH=/tmp/gdbm-1.21/src/.libs
 $ export LIBRARY_PATH
 ```
-*export* is needed to make the environment variable available to programs
+`export` is needed to make the environment variable available to programs
 outside the shell itself, such as the compiler.
 
 Then, we can compile and link with
@@ -254,7 +254,7 @@ $ gcc -Wall -static dbmain.c -lgdbm -lintl
 
 #### Strict ANSI/ISO
 The command-line option '-pedantic' in combination with '-ansi' will
-cause gcc to reject all GNU C extensions, not just those that are incompatible with the
+cause `gcc` to reject all GNU C extensions, not just those that are incompatible with the
 ANSI/ISO standard.
 
 ```bash
@@ -274,16 +274,16 @@ $ gcc -std=c99 -Wall main.c
 
 ## Using the preprocessor
 
-The preprocessor *cpp* expands macros in source files before they are compiled.
+The preprocessor `cpp` expands macros in source files before they are compiled.
 
 ### Defining macros
 The program [dtest.c](4_Preprocessor/dtest.c)
 demonstrates the most common use of the C preprocessor. It uses the preprocessor conditional
-*#ifdef* to check whether a macro is defined.
+`#ifdef` to check whether a macro is defined.
 When the macro is defined, the preprocessor includes the corresponding code up to the closing
-*#endif* command.
+`#endif` command.
 
-The gcc option '-D*NAME*' defines a preprocessor macro *NAME* from the command line.
+The `gcc` option '-D`NAME`' defines a preprocessor macro `NAME` from the command line.
 
 ```bash
 $ gcc -Wall -DTEST dtest.c
