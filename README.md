@@ -145,7 +145,7 @@ $ gcc -Wall -I/tmp/gdbm-1.21/src -L/tmp/gdbm-1.21/src/.libs dbmain.c -lgdbm
 ```
 Compliles and links but won't execute :/ (explained below).
 
-### Environment variables
+#### Environment variables
 
 Additional directories can be added to the include and link path using
 environment variables C_INCLUDE_PATH and LIBRARY_PATH respectively:
@@ -236,7 +236,7 @@ $ ls -l /tmp/gdbm-1.26/src/.libs/libgdbm*
 - Easier deployment but harder to update
 - Must manually specify all transitive dependencies during linking
 
-### FreeBSD error
+#### FreeBSD error
 ```bash
 $ gcc -Wall -static dbmain.c -lgdbm
 [...]
@@ -248,4 +248,54 @@ In this example, `libgdbm` depends on `libintl` (from GNU gettext for internatio
 
 ```bash
 $ gcc -Wall -static dbmain.c -lgdbm -lintl
+```
+
+### C language standards
+
+#### Strict ANSI/ISO
+The command-line option '-pedantic' in combination with '-ansi' will
+cause gcc to reject all GNU C extensions, not just those that are incompatible with the
+ANSI/ISO standard.
+
+```bash
+$ gcc -Wall -ansi -pedantic gnuarray.c
+gnuarray.c: In function 'main':
+gnuarray.c:4:5: warning: ISO C90 forbids variable length array 'x' [-Wvla]
+    4 |     double x[n];
+      |     ^~~~~~
+```
+
+#### Selecting specific standards
+The specific language standard used by GCC can be controlled with the '-std' option.
+
+```bash
+$ gcc -std=c99 -Wall main.c
+```
+
+## Using the preprocessor
+
+The preprocessor *cpp* expands macros in source files before they are compiled.
+
+### Defining macros
+The program [dtest.c](4_Preprocessor/dtest.c)
+demonstrates the most common use of the C preprocessor. It uses the preprocessor conditional
+*#ifdef* to check whether a macro is defined.
+When the macro is defined, the preprocessor includes the corresponding code up to the closing
+*#endif* command.
+
+The gcc option '-D*NAME*' defines a preprocessor macro *NAME* from the command line.
+
+```bash
+$ gcc -Wall -DTEST dtest.c
+$ ./a.out
+Test mode
+Running...
+```
+If the same program is compiled without the '-D' option then the "Test mode" message
+is omitted from the source code after preprocessing, and the final executable does not include
+the code for it:
+```bash
+$ gcc -Wall dtest.c
+$ ./a.out
+Running...
 ```
