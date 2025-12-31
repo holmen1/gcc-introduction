@@ -299,3 +299,33 @@ $ gcc -Wall dtest.c
 $ ./a.out
 Running...
 ```
+
+## Compiling for debuging
+
+GCC provides the ‘-g’ debug option to store additional debugging information in object
+files and executables. This debugging information allows errors to be traced back from a
+specific machine instruction to the corresponding line in the original source file.
+The execution of a program compiled with ‘-g’ can also be followed in a debugger, such as the GNU
+Debugger `gdb`.
+
+### Examining core files
+
+When a program exits abnormally (i.e. crashes) the operating system can write out a
+*core file* (usually named ‘core’) which contains the in-memory state of the program at the
+time it crashed. This file is often referred to as a *core dump*.
+Combined with information
+from the symbol table produced by ‘-g’, the core dump can be used to find the line where
+the program stopped, and the values of its variables at that point.
+
+
+[null.c](5_Debugging/null.c)
+is a simple program containing an invalid memory access bug, which we will use to
+produce a core file.
+
+```bash
+$ gcc -Wall null.c
+$ ./a.out
+Segmentation fault         (core dumped) ./a.out
+```
+
+
