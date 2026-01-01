@@ -29,6 +29,10 @@
 # Ignore all bin directory contents
 **/bin/*
 
+# Ignore core dump files
+core
+*.core
+
 cmake-build-debug/
 
 # IDE specific files
