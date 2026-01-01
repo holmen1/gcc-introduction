@@ -1,4 +1,8 @@
 ---
+# Clang-format configuration
+# Based on LLVM style with custom adjustments for code formatting
+# Used with LSP in Neovim
+
 BasedOnStyle: LLVM
 IndentWidth: 4
 ColumnLimit: 80

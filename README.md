@@ -335,7 +335,18 @@ Segmentation fault         (core dumped) ./a.out
 ```
 
 Whenever the error message ‘core dumped’ is displayed, the operating system should
-produce a file called ‘core’ in the current directory. Variations ...
+produce a core file which can be used for debugging.
+
+**Note on Arch Linux / systemd:** Core dumps are handled by systemd and stored in `/var/lib/systemd/coredump/` 
+by default. To instead write core dumps to the current working directory, use:
+```bash
+$ ulimit -c 1000
+$ sudo sysctl -w kernel.core_pattern=%e.%p.core
+```
+The first command sets the core dump size limit to 1000 blocks of 512 bytes each (512 KB). 
+The second configures the kernel to write core files directly to the current working directory 
+with the naming format `executable.pid.core` (e.g., `a.out.1234.core`).
+To view systemd-managed core dumps, use `coredumpctl` command.
 
 In order to be able to find the cause of the crash, we compile the
 program with the ‘-g’ option: `$ gcc -Wall -g null.c`
