@@ -457,4 +457,217 @@ Continuing.
 ```
 Note that the exit code is shown in octal (0377 base 8 = 255 in base 10).
 
+## Compiling with optimization
+
+GCC is an optimizing compiler. It provides a wide range of options which aim to increase
+the speed, or reduce the size, of the executable files it generates.
+
+### Source-level optimization
+
+The first form of optimization used by GCC occurs at the source-code level, and does not require any knowledge of the machine instructions.
+
+#### Common subexpression elimination
+
+One method of source-level optimization which is easy to understand involves computing an
+expression in the source code with fewer instructions, by reusing already-computed results.
+For example, the following assignment:
+```c
+x = cos(v)*(1+sin(u/2)) + sin(w)*(1-sin(u/2))
+```
+can be rewritten with a temporary variable t to eliminate an unnecessary extra evaluation
+of the term sin(u/2):
+```c
+t = sin(u/2)
+x = cos(v)*(1+t) + sin(w)*(1-t)
+```
+This rewriting is called common subexpression elimination (CSE).
+
+#### Function inlining
+
+Whenever a function is used, a certain amount of extra time is required for the CPU
+to carry out the call: it must store the function arguments in the appropriate registers
+and memory locations, jump to the start of the function (bringing the appropriate virtual
+memory pages into physical memory or the CPU cache if necessary), begin executing the
+code, and then return to the original point of execution when the function call is complete.
+This additional work is referred to as function-call overhead. Function inlining eliminates
+this overhead by replacing calls to a function by the code of the function itself.
+
+The following function sq(x) is a typical example of a function that would benefit from
+being inlined. It computes the square of its argument x:
+```c
+double sq (double x)
+{
+  return x * x;
+}
+```
+If this function is used inside a loop, such as the one below, then the function-call overhead would become substantial:
+```c
+for (i = 0; i < 1000000; i++)
+{
+  sum += sq (i + 0.5);
+}
+```
+Optimization with inlining replaces the inner loop of the program with the body of the
+function, giving the following code:
+```c
+for (i = 0; i < 1000000; i++)
+{
+double t = (i + 0.5); /* temporary variable */
+sum += t * t;
+}
+```
+
+
+### Speed-space tradeoffs
+
+While some forms of optimization, such as common subexpression elimination, are able
+to increase the speed and reduce the size of a program simultaneously, other types of
+optimization produce faster code at the expense of increasing the size of the executable.
+
+#### Loop unrolling
+
+The following loop from 0 to 7 tests the condition i < 8 on each iteration:
+```c
+for (i = 0; i < 8; i++)
+{
+  y[i] = i;
+}
+```
+
+A more efficient way to write the same code is simply to unroll the loop and execute the
+assignments directly:
+```c
+y[0] = 0;
+y[1] = 1;
+y[2] = 2;
+y[3] = 3;
+y[4] = 4;
+y[5] = 5;
+y[6] = 6;
+y[7] = 7;
+```
+This form of the code does not require any tests, and executes at maximum speed. Since
+each assignment is independent, it also allows the compiler to use parallelism on processors
+that support it.
+
+### Scheduling
+
+The lowest level of optimization is scheduling, in which the compiler determines the best
+ordering of individual instructions.
+
+Scheduling improves the speed of an executable without increasing its size, but requires
+additional memory and time in the compilation process itself (due to its complexity).
+
+### Optimization levels
+
+An optimization level is chosen with the command line option ‘-OLEVEL’, where LEVEL
+is a number from 0 to 3. The effects of the different optimization levels are described below:
+
+`-O0` or no option (default)  
+At this optimization level GCC does not perform any optimization and compiles
+the source code in the most straightforward way possible.  
+**This is the best option to use when debugging** a program and is the default
+if no optimization level option is specified.
+
+`-O1` or `-O`  
+This level turns on the most common forms of optimization that do not require
+any speed-space tradeoffs. With this option the resulting executables should be
+smaller and faster than with ‘-O0’.
+
+`-O2`  
+These additional optimizations include instruction scheduling.  
+**This option is generally the best choice for deployment** of a program,
+because it provides maximum optimization without increasing the executable size.
+
+`-O3`  
+This option turns on more expensive optimizations, such as function inlining.
+
+`-funroll-loops`  
+This option turns on loop-unrolling, and is independent of the other optimization options.
+
+`-Os`  
+This option selects optimizations which reduce the size of an executable. The
+aim of this option is to produce the smallest possible executable, for systems
+constrained by memory or disk space.  
+It is important to remember that the benefit of optimization at the highest levels must be
+weighed against the cost.
+
+
+### Examples
+
+```bash
+$ lscpu | grep -E "Model name|MHz"
+Model name:                              11th Gen Intel(R) Core(TM) i5-1135G7 @ 2.40GHz
+$ lscpu | grep -E "L1|L2|L3"
+L1d cache:                               192 KiB (4 instances)
+L1i cache:                               128 KiB (4 instances)
+L2 cache:                                5 MiB (4 instances)
+L3 cache:                                8 MiB (1 instance)
+```
+Here are some results for the program [test.c](6_Optimization/test.c),
+using GCC 15.2.1 on a GNU/Linux system:
+
+```bash
+$ gcc -Wall test.c
+time ./a.out
+
+real    0m4.717s
+user    0m4.710s
+sys     0m0.000s
+
+
+$ gcc -Wall -O1 test.c
+$ time ./a.out
+
+real    0m1.432s
+user    0m1.427s
+sys     0m0.003s
+
+
+$ gcc -Wall -O2 test.c
+$ time ./a.out
+
+real    0m1.227s
+user    0m1.224s
+sys     0m0.002s
+
+
+$ gcc -Wall -O3 test.c
+$ time ./a.out
+
+real    0m0.985s
+user    0m0.983s
+sys     0m0.001s
+
+
+$ gcc -Wall -O3 -funroll-loops test.c
+$ time ./a.out
+
+real    0m0.962s
+user    0m0.960s
+sys     0m0.001s
+```
+
+
+```bash
+# Compile with different flags explicitly
+gcc -Wall -O0 test.c -o test-O0
+gcc -Wall -O3 -funroll-loops test.c -o test-O3
+
+# Check actual code section sizes
+size test-O0 test-O3
+   text    data     bss     dec     hex filename
+   1587     584       8    2179     883 test-O0
+   1994     584       8    2586     a1a test-O3
+
+# See the assembly to verify optimization
+gcc -Wall -O0 -S test.c -o test-O0.s
+gcc -Wall -O3 -funroll-loops -S test.c -o test-O3.s
+wc -l test-O0.s test-O3.s
+ 113 test-O0.s
+ 237 test-O3.s
+ 350 total
+```
+Bottom line: The -O3 -funroll-loops version has 26% more actual code, but you can't see it in the total file size because the code is a small fraction of the binary. Always use size to see the real difference!
+
 
