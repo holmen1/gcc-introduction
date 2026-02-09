@@ -708,3 +708,218 @@ uninit.c:4: warning: ‘s’ might be used uninitialized in this function
 This correctly detects the possibility of the variable s being used without being defined.
 
 
+## Troubleshooting
+
+GCC provides several help and diagnostic options to assist in troubleshooting problems
+with the compilation process.
+
+### Help for command-line options
+
+To display a complete list of options for gcc and its associated programs, such as the GNU
+Linker and GNU Assembler, use the help option above with the verbose (‘-v’) option:
+```$ gcc -v --help```
+
+### Version numbers
+
+You can find the version number of gcc using the version option:
+```bash
+$ gcc --version
+gcc (GCC) 15.2.1 20260103
+```
+The version number is important when investigating compilation problems, since older
+versions of GCC may be missing some features that a program uses.
+
+More details about the version can be found using ‘-v’:
+```bash
+$ gcc -v
+Using built-in specs.
+COLLECT_GCC=gcc
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/lto-wrapper
+Target: x86_64-pc-linux-gnu
+Configured with: /build/gcc/src/gcc/configure --enable-languages=ada,c,c++,d,fortran,go,lto,m2,objc,obj-c++,rust,cobol --enable-bootstrap --prefix=/usr --libdir=/usr/lib --libexecdir=/usr/lib --mandir=/usr/share/man --infodir=/usr/share/info --with-bugurl=https://gitlab.archlinux.org/archlinux/packaging/packages/gcc/-/issues --with-build-config=bootstrap-lto --with-linker-hash-style=gnu --with-system-zlib --enable-__cxa_atexit --enable-cet=auto --enable-checking=release --enable-clocale=gnu --enable-default-pie --enable-default-ssp --enable-gnu-indirect-function --enable-gnu-unique-object --enable-libstdcxx-backtrace --enable-link-serialization=1 --enable-linker-build-id --enable-lto --enable-multilib --enable-plugin --enable-shared --enable-threads=posix --disable-libssp --disable-libstdcxx-pch --disable-werror
+Thread model: posix
+Supported LTO compression algorithms: zlib zstd
+gcc version 15.2.1 20260103 (GCC) 
+```
+
+### Verbose compilation
+
+The ‘-v’ option can also be used to display detailed information about the exact sequence
+of commands used to compile and link a program:
+```bash
+9_Troubleshooting $ gcc -v -std=c99 -Wall hello.c
+Using built-in specs.
+COLLECT_GCC=gcc
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/lto-wrapper
+Target: x86_64-pc-linux-gnu
+Configured with: /build/gcc/src/gcc/configure --enable-languages=ada,c,c++,d,fortran,go,lto,m2,objc,obj-c++,rust,cobol --enable-bootstrap --prefix=/usr --libdir=/usr/lib --libexecdir=/usr/lib --mandir=/usr/share/man --infodir=/usr/share/info --with-bugurl=https://gitlab.archlinux.org/archlinux/packaging/packages/gcc/-/issues --with-build-config=bootstrap-lto --with-linker-hash-style=gnu --with-system-zlib --enable-__cxa_atexit --enable-cet=auto --enable-checking=release --enable-clocale=gnu --enable-default-pie --enable-default-ssp --enable-gnu-indirect-function --enable-gnu-unique-object --enable-libstdcxx-backtrace --enable-link-serialization=1 --enable-linker-build-id --enable-lto --enable-multilib --enable-plugin --enable-shared --enable-threads=posix --disable-libssp --disable-libstdcxx-pch --disable-werror
+Thread model: posix
+Supported LTO compression algorithms: zlib zstd
+gcc version 15.2.1 20260103 (GCC)
+COLLECT_GCC_OPTIONS='-v' '-std=c99' '-Wall' '-mtune=generic' '-march=x86-64' '-dumpdir' 'a-'
+ /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/cc1 -quiet -v hello.c -quiet -dumpdir a- -dumpbase hello.c -dumpbase-ext .c -mtune=generic -march=x86-64 -Wall -std=c99 -version -o /tmp/ccY3Sv8a.s
+GNU C99 (GCC) version 15.2.1 20260103 (x86_64-pc-linux-gnu)
+        compiled by GNU C version 15.2.1 20260103, GMP version 6.3.0, MPFR version 4.2.2, MPC version 1.3.1, isl version isl-0.27-GMP
+
+GGC heuristics: --param ggc-min-expand=100 --param ggc-min-heapsize=131072
+ignoring nonexistent directory "/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../x86_64-pc-linux-gnu/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include
+ /usr/local/include
+ /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/include-fixed
+ /usr/include
+End of search list.
+Compiler executable checksum: 2aa0ead74273ed721e313ee5d9153840
+COLLECT_GCC_OPTIONS='-v' '-std=c99' '-Wall' '-mtune=generic' '-march=x86-64' '-dumpdir' 'a-'
+ as -v --64 -o /tmp/ccOExV7p.o /tmp/ccY3Sv8a.s
+GNU assembler version 2.45.1 (x86_64-pc-linux-gnu) using BFD version (GNU Binutils) 2.45.1
+COMPILER_PATH=/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/:/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/:/usr/lib/gcc/x86_64-pc-linux-gnu/:/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/:/usr/lib/gcc/x86_64-pc-linux-gnu/
+LIBRARY_PATH=/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/:/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/:/lib/../lib/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-std=c99' '-Wall' '-mtune=generic' '-march=x86-64' '-dumpdir' 'a.'
+ /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/collect2 -plugin /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/lto-wrapper -plugin-opt=-fresolution=/tmp/cciEhdsP.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --build-id --eh-frame-hdr --hash-style=gnu -m elf_x86_64 -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/Scrt1.o /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/crti.o /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtbeginS.o -L/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1 -L/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib -L/lib/../lib -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../.. -L/lib -L/usr/lib /tmp/ccOExV7p.o -lgcc --push-state --as-needed -lgcc_s --pop-state -lc -lgcc --push-state --as-needed -lgcc_s --pop-state /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtendS.o /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/../../../../lib/crtn.o
+COLLECT_GCC_OPTIONS='-v' '-std=c99' '-Wall' '-mtune=generic' '-march=x86-64' '-dumpdir' 'a.'
+```
+
+The output produced by ‘-v’ can be useful whenever there is a problem with the compilation
+process itself. It displays the full directory paths used to search for header files and libraries,
+the predefined preprocessor symbols, and the object files and libraries used for linking.
+
+### Stopping a program in an infinite loop
+
+A program which goes into an infinite loop or “hangs” can be difficult to debug.
+A sophisticated
+approach is to attach to the running process with a debugger and inspect it interactively.
+For example, here is a simple
+[program](9_Troubleshooting)
+with an infinite loop:
+
+```bash
+$ gcc -Wall loop.c
+$ ./a.out
+(program hangs)
+```
+
+Once the executable is running we need to find its process id (pid). This can be done from
+another session with the command ps x:
+```bash
+$ ps x | grep a.out
+   6226 pts/0    R+     0:56 ./a.out
+```
+
+In this case the process id is 6226, and we can now attach to it with gdb. The debugger
+should be started in the directory containing the executable and its source code.
+
+**Note:** On modern Linux systems with ptrace restrictions (`ptrace_scope=1`), you'll need to
+use `sudo` to attach to a running process. See the note below for alternative approaches.
+
+```bash
+$ sudo gdb -p 6226
+GNU gdb (GDB) 17.1
+Copyright (C) 2025 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-pc-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<https://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word".
+Attaching to process 6226
+Reading symbols from /home/holmen1/repos/gcc-introduction/9_Troubleshooting/a.out...
+Reading symbols from /usr/lib/libc.so.6...
+(No debugging symbols found in /usr/lib/libc.so.6)
+Reading symbols from /lib64/ld-linux-x86-64.so.2...
+(No debugging symbols found in /lib64/ld-linux-x86-64.so.2)
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/usr/lib/libthread_db.so.1".
+0x000055ae1d900128 in main () at loop.c:6
+6               i++;
+(gdb) p i
+$1 = 3748150416
+(gdb) kill
+Kill the program being debugged? (y or n) y
+[Inferior 1 (process 6625) killed]
+```
+
+```bash
+$ gdb ./a.out
+GNU gdb (GDB) 17.1
+Copyright (C) 2025 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-pc-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<https://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from ./a.out...
+(gdb) run
+Starting program: /home/holmen1/repos/gcc-introduction/9_Troubleshooting/a.out
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/usr/lib/libthread_db.so.1".
+^C
+Program received signal SIGINT, Interrupt.
+0x0000555555555128 in main () at loop.c:6
+6               i++;
+(gdb) p i
+$1 = 3053629673
+```
+
+**Modern Linux Systems (ptrace restrictions):**
+
+On modern Linux distributions, the Yama security module restricts ptrace operations by default.
+If you encounter `ptrace: Operation not permitted` when trying to attach GDB to a running process,
+check the current restriction level:
+```bash
+$ cat /proc/sys/kernel/yama/ptrace_scope
+```
+- `0` = classic ptrace (unrestricted)
+- `1` = restricted (only parent processes can trace) - **default on most systems**
+- `2` = admin-only
+- `3` = no ptrace allowed
+
+**The examples above demonstrate two common workarounds:**
+
+1. **Run GDB with sudo** (first example above):
+   ```bash
+   $ sudo gdb -p <pid>
+   ```
+
+2. **Start the program under GDB** (second example above, recommended for debugging):
+   ```bash
+   $ gdb ./a.out
+   (gdb) run
+   # Press Ctrl-C when it hangs to interrupt
+   ```
+
+3. **Temporarily allow ptrace** (until reboot):
+   ```bash
+   $ sudo sysctl -w kernel.yama.ptrace_scope=0
+   # Now you can attach to running processes without sudo
+   ```
+
+### Preventing excessive memory usage
+
+Sometimes a programming error will cause a process to allocate huge amounts of memory, consuming all the ram on a system. To prevent this, the GNU Bash command ulimit -v
+limit can be used to restrict the amount of virtual memory available to each process.
+For example,
+```bash
+$ ulimit -v 4096
+```
+will limit subsequent processes to 4 megabytes of virtual memory (4096k).
+
+An artificially low limit can be used to simulate running out of memory
+— a well-written program should not crash in this case.
+
