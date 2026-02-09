@@ -670,4 +670,41 @@ wc -l test-O0.s test-O3.s
 ```
 Bottom line: The -O3 -funroll-loops version has 26% more actual code, but you can't see it in the total file size because the code is a small fraction of the binary. Always use size to see the real difference!
 
+### Optimization and debugging
+
+With GCC it is possible to use optimization in combination with the debugging option ‘-g’.
+
+When a program crashes unexpectedly, any debugging information is better
+than none—so the use of ‘-g’ is recommended for optimized programs.
+
+### Optimization and compiler warnings
+
+As part of the optimization process, the compiler examines the use of all variables and
+their initial values —this is referred to as *data-flow analysis*.
+The ‘-Wuninitialized’ option (which is included in ‘-Wall’) warns about variables
+that are read without being initialized.
+The following function contains an example of such a variable:
+```c
+int sign (int x)
+{
+  int s;
+  if (x > 0)
+    s = 1;
+  else if (x < 0)
+    s = -1;
+  return s;
+}
+```
+
+The function works correctly for most arguments, but has a bug when x is zero—in this
+case the return value of the variable s will be undefined.
+
+To produce a warning, the program must be compiled with ‘-Wall’ and optimization simultaneously:
+```bash
+$ gcc -Wall -O2 -c uninit.c
+uninit.c: In function ‘sign’:
+uninit.c:4: warning: ‘s’ might be used uninitialized in this function
+```
+This correctly detects the possibility of the variable s being used without being defined.
+
 
