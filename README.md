@@ -791,7 +791,7 @@ A program which goes into an infinite loop or “hangs” can be difficult to de
 A sophisticated
 approach is to attach to the running process with a debugger and inspect it interactively.
 For example, here is a simple
-[program](9_Troubleshooting)
+[program](9_Troubleshooting/loop.c)
 with an infinite loop:
 
 ```bash
