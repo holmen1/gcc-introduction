@@ -979,6 +979,25 @@ Hello, world!
 Goodbye!
 ```
 
+### Using the profiler gprof
+The GNU profiler **gprof** is a useful tool for measuring the performance
+of a program - it records the number of calls to each function and the amount of time spent there, on a perfunction basis.
+
+We will use **gprof** to examine the performance of a small numerical program which computes the lengths of sequences occurring in the unsolved Collatz conjecture in mathematics.
+The Collatz conjecture involves sequences defined by the rule:
+$$
+x_{n+1} \leftarrow
+\begin{cases}
+x_n / 2 & \text{if } x_n \text{ even} \\
+3x_n + 1 & \text{if } x_n \text{ odd}
+\end{cases}
+$$
+
+The sequence is iterated from an initial value x0 until it terminates with the value 1.
+According to the conjecture, all sequences do terminate eventually - the program below displays the longest sequences as x0 increases.
+The source file ‘collatz.c’ contains three
+functions: main, nseq and step:
+
 
 
 
