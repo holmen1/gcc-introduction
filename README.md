@@ -923,3 +923,62 @@ will limit subsequent processes to 4 megabytes of virtual memory (4096k).
 An artificially low limit can be used to simulate running out of memory
 — a well-written program should not crash in this case.
 
+## Compiler-related tools
+
+### Creating a library with the GNU archiver
+
+The GNU archiver **ar** combines a collection of object files into a single archive file, also
+known as a library.
+
+The first object file will be generated from the source code for the hello function, in
+the file [hello_fn.c](10_Tools/hello_fn.c) seen earlier.
+The second object file will be generated from the source file
+[bye_fn.c](10_Tools/bye_fn.c), which contains the new function bye.
+
+Both functions use the header file [hello.h](10_Tools/hello.h), now with a prototype for the function **bye()**.
+
+The source code can be compiled to the object files ‘hello_fn.o’ and ‘bye_fn.o’ using the
+commands:
+```bash
+$ gcc -Wall -c hello_fn.c
+$ gcc -Wall -c bye_fn.c
+```
+These object files can be combined into a static library using the following command line:
+```bash
+$ ar cr libhello.a hello_fn.o bye_fn.o
+```
+The option ‘cr’ stands for “create and replace”.
+
+The archiver **ar** also provides a “table of contents” option ‘t’ to list the object files in an existing library:
+```bash
+$ ar t libhello.a
+hello_fn.o
+bye_fn.o
+```
+Note that when a library is distributed, the header files for the public functions and variables
+it provides should also be made available, so that the end-user can include them and obtain the correct prototypes.
+
+We can now write [main.c](10_Tools/main.c) using the functions in the newly created library.
+
+This file can be compiled with the following command line,
+assuming the library ‘libhello.a’ is stored in the current directory:
+```bash
+$ gcc -Wall main.c libhello.a -o hello
+```
+
+The short-cut library linking option '-l' can also be used to link the program, without needing to specify the full filename of the library explicitly:
+```bash
+$ gcc -Wall -L. main.c -lhello -o hello
+```
+The option '-L.' is needed to add the current directory to the library search path.
+
+The resulting executable can be run as usual:
+```bash
+$ ./hello
+Hello, world!
+Goodbye!
+```
+
+
+
+
