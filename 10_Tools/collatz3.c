@@ -1,22 +1,16 @@
 #include <stdio.h>
 
-unsigned int step(unsigned int x)
+static inline unsigned int step(unsigned int x)
 {
-
-    if (x % 2 == 0)
-        return x / 2;
-    else
-        return 3 * x + 1;
+    return (x & 1) ? 3 * x + 1 : x >> 1;
 }
 
 unsigned int stepn(unsigned int x0)
 {
     unsigned int i = 1, x;
-    if (x0 == 0 || x0 == 1)
-        return i;
 
     x = step(x0);
-    while (x != 1 && x != 0) {
+    while (x != 1) {
         x = step(x);
         i++;
     }
@@ -25,8 +19,10 @@ unsigned int stepn(unsigned int x0)
 
 int main(void)
 {
+    printf("0\tn = 1\n");
+    printf("1\tn = 1\n");
     unsigned int n;
-    for (int k = 0; k < 5000000; k++) {
+    for (int k = 2; k < 5000000; k++) {
         n = stepn(k);
         printf("%d\tn = %d\n", k, n);
     }

@@ -995,9 +995,78 @@ $$
 
 The sequence is iterated from an initial value x0 until it terminates with the value 1.
 According to the conjecture, all sequences do terminate eventually - the program below displays the longest sequences as x0 increases.
-The source file ‘collatz.c’ contains three
-functions: main, nseq and step:
+The source file [collatz.c](10_Tools/collatz.c)
+contains three functions: main, nseq and step.
 
+To use profiling, the program must be compiled and linked with the '-pg' profiling option:
+```bash
+$ gcc -Wall -c -pg collatz.c
+$ gcc -Wall -pg collatz.o
+```
+This creates an instrumented executable which contains additional instructions that record
+the time spent in each function.
 
+The executable must be run to create the profiling data:
+```bash
+$ ./a.out
+(normal program output is displayed)
+```
+Profiling data is silently written to a file
+‘gmon.out’ in the current directory. It can be analyzed with gprof by giving the name
+of the executable as an argument:
+```bash
+$ gprof a.out
+Flat profile:
 
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ns/call  ns/call  name
+ 50.41      1.24     1.24 740343580     1.67     1.67  step
+ 34.55      2.09     0.85  5000000   170.00   418.00  stepn
+ 12.60      2.40     0.31                             _init
+  2.44      2.46     0.06                             main
+```
+The first column of the data shows that the program spends most of its time
+in the function step (50%), and 35% in stepn. Consequently efforts to decrease the run-time of
+the program should concentrate on these hot functions.
 
+### Optimizing based on the profile
+
+Guided by the profiling data, I created an optimized version [collatz2.c](10_Tools/collatz2.c) with the following changes:
+
+1. **Simplified the loop condition in `stepn`** — changed `while (x != 1 && x != 0)` to `while (x != 1)`, eliminating one comparison per iteration. Since this loop body runs ~740 million times, removing a branch from the inner loop is significant.
+
+2. **Moved boundary handling out of `stepn` into `main`** — the checks for `x0 == 0` and `x0 == 1` were removed from `stepn` and instead `main` handles these two trivial cases with direct `printf` calls. This removes a branch that was evaluated on every one of the 5 million calls to `stepn`.
+
+3. **Used a ternary expression in `step`** — replaced the `if/else` with a ternary `(x % 2 == 0) ? x / 2 : 3 * x + 1`. This is a stylistic change; the compiler likely generates equivalent code.
+
+```bash
+$ gprof a.out
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls  ns/call  ns/call  name
+ 59.17      1.29     1.29 740343580     1.74     1.74  step
+ 22.48      1.78     0.49  4999998    98.00   356.00  stepn
+ 14.22      2.09     0.31                             _init
+  4.13      2.18     0.09                             main
+```
+
+**Key takeaways:**
+
+- The biggest win came from simplifying the `stepn` inner loop condition. Removing the redundant `x != 0` check saved ~0.36 s — nearly 42% of `stepn`'s original time. This makes sense: the check ran on every one of the ~740 million iterations of the inner loop.
+- The number of `step` calls is identical (740,343,580) because the actual Collatz sequences for $k \geq 2$ are unchanged — we only changed *how* we loop, not *what* we compute.
+- After optimization, `step` now dominates even more (59% vs 50%). The profile tells us that further improvement would require optimizing `step` itself — for example, replacing the modulo operation with a bitwise test (`x & 1`), which the compiler may or may not already do.
+- Profiling first, then optimizing the measured bottleneck, is far more effective than guessing. The book's advice to "concentrate on the former" (the hottest function) is validated here.
+
+### Trying to outsmart the compiler
+
+Following the profile's hint, I created [collatz3.c](10_Tools/collatz3.c) with `static inline` on `step` and bitwise ops (`x & 1`, `x >> 1`) instead of `%` and `/`:
+
+| Build | collatz2 | collatz3 | Speedup |
+|---|---|---|---|
+| `-O0` | 2.03 s | 1.97 s | ~3% |
+| `-O2` | 1.22 s | 1.16 s | ~5% |
+
+At `-O2` the difference nearly vanishes — the compiler already replaces `x % 2` with a bitwise test and `x / 2` with a shift, and inlines small functions on its own. Old fact: don't try to be smart, the compiler is smarter.
