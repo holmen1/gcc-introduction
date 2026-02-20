@@ -11,6 +11,11 @@
 *.out
 *.exe
 
+# Coverage files
+*.gcov
+*.gcda
+*.gcno
+
 # Database files
 *.db
 

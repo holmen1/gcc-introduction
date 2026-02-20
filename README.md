@@ -1030,7 +1030,7 @@ The first column of the data shows that the program spends most of its time
 in the function step (50%), and 35% in stepn. Consequently efforts to decrease the run-time of
 the program should concentrate on these hot functions.
 
-### Optimizing based on the profile
+#### Optimizing based on the profile
 
 Guided by the profiling data, I created an optimized version [collatz2.c](10_Tools/collatz2.c) with the following changes:
 
@@ -1060,7 +1060,7 @@ Each sample counts as 0.01 seconds.
 - After optimization, `step` now dominates even more (59% vs 50%). The profile tells us that further improvement would require optimizing `step` itself — for example, replacing the modulo operation with a bitwise test (`x & 1`), which the compiler may or may not already do.
 - Profiling first, then optimizing the measured bottleneck, is far more effective than guessing. The book's advice to "concentrate on the former" (the hottest function) is validated here.
 
-### Trying to outsmart the compiler
+#### Trying to outsmart the compiler
 
 Following the profile's hint, I created [collatz3.c](10_Tools/collatz3.c) with `static inline` on `step` and bitwise ops (`x & 1`, `x >> 1`) instead of `%` and `/`:
 
@@ -1070,3 +1070,62 @@ Following the profile's hint, I created [collatz3.c](10_Tools/collatz3.c) with `
 | `-O2` | 1.22 s | 1.16 s | ~5% |
 
 At `-O2` the difference nearly vanishes — the compiler already replaces `x % 2` with a bitwise test and `x / 2` with a shift, and inlines small functions on its own. Old fact: don't try to be smart, the compiler is smarter.
+
+
+### Coverage testing with gcov
+
+The GNU coverage testing tool **gcov** analyses the number of times each line of a program
+is executed during a run.
+
+We will use [cov.c](10_Tools/cov.c) to demonstrate gcov. This program loops overs
+the integers 1 to 9 and tests their divisibility with the modulus (%) operator.
+
+To enable coverage testing the program must be compiled with the following options (without optimization):
+```bash
+$ gcc -Wall --coverage cov.c
+```
+This creates an instrumented executable which contains additional instructions that record
+the number of times each line of the program is executed.
+The executable must then be run to create the coverage
+data:
+```bash
+$ ./a.out
+3 is divisable by 3
+6 is divisable by 3
+9 is divisable by 3
+```
+The data from the run is written to file with the extensions ‘.gcda’ in the current directory.
+It contains arc transition counts, value profile counts, and some summary information.
+This data can be analyzed using the gcov command and the name of a source file:
+```bash
+$ gcov cov.c
+File 'cov.c'
+Lines executed:85.71% of 7
+Creating 'cov.c.gcov'
+
+Lines executed:85.71% of 7
+```
+The gcov command produces an annotated version of the original source file, with the file
+extension ‘.gcov’, containing counts of the number of times each line was executed:
+```bash
+$ cat cov.c.gcov
+        -:    0:Source:cov.c
+        -:    0:Graph:cov.gcno
+        -:    0:Data:cov.gcda
+        -:    0:Runs:3
+        -:    1:#include <stdio.h>
+        -:    2:
+        3:    3:int main(void)
+        -:    4:{
+       30:    5:    for (int i = 1; i < 10; i++) {
+       27:    6:        if (i % 3 == 0)
+        9:    7:            printf("%d is divisable by 3\n", i);
+       27:    8:        if (i % 11 == 0)
+    #####:    9:            printf("%d is divisable by 11\n", i);
+        -:   10:    }
+        3:   11:    return 0;
+        -:   12:}
+```
+The line counts can be seen in the first column of the output. Lines which were not executed
+are marked with hashes ‘######’.
+
