@@ -1082,7 +1082,8 @@ the integers 1 to 9 and tests their divisibility with the modulus (%) operator.
 
 To enable coverage testing the program must be compiled with the following options (without optimization):
 ```bash
-$ gcc -Wall --coverage cov.c
+$ gcc -Wall -c --coverage cov.c
+$ gcc -Wall --coverage cov.o
 ```
 This creates an instrumented executable which contains additional instructions that record
 the number of times each line of the program is executed.
@@ -1112,18 +1113,18 @@ $ cat cov.c.gcov
         -:    0:Source:cov.c
         -:    0:Graph:cov.gcno
         -:    0:Data:cov.gcda
-        -:    0:Runs:3
+        -:    0:Runs:1
         -:    1:#include <stdio.h>
         -:    2:
-        3:    3:int main(void)
+        1:    3:int main(void)
         -:    4:{
-       30:    5:    for (int i = 1; i < 10; i++) {
-       27:    6:        if (i % 3 == 0)
-        9:    7:            printf("%d is divisable by 3\n", i);
-       27:    8:        if (i % 11 == 0)
+       10:    5:    for (int i = 1; i < 10; i++) {
+        9:    6:        if (i % 3 == 0)
+        3:    7:            printf("%d is divisable by 3\n", i);
+        9:    8:        if (i % 11 == 0)
     #####:    9:            printf("%d is divisable by 11\n", i);
         -:   10:    }
-        3:   11:    return 0;
+        1:   11:    return 0;
         -:   12:}
 ```
 The line counts can be seen in the first column of the output. Lines which were not executed
