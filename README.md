@@ -1085,8 +1085,9 @@ To enable coverage testing the program must be compiled with the following optio
 $ gcc -Wall -c --coverage cov.c
 $ gcc -Wall --coverage cov.o
 ```
-This creates an instrumented executable which contains additional instructions that record
-the number of times each line of the program is executed.
+The `--coverage` flag is needed at both stages: the compile step (`-c`) instruments the code
+and generates a `.gcno` graph file describing the program structure, while the link step adds
+the `gcov` runtime library that writes coverage data on exit.
 The executable must then be run to create the coverage
 data:
 ```bash
@@ -1095,8 +1096,9 @@ $ ./a.out
 6 is divisable by 3
 9 is divisable by 3
 ```
-The data from the run is written to file with the extensions ‘.gcda’ in the current directory.
-It contains arc transition counts, value profile counts, and some summary information.
+The data from the run is written to a `.gcda` (data) file in the current directory.
+Together with the `.gcno` (graph) file produced at compile time, it records arc transition
+counts, value profile counts, and some summary information.
 This data can be analyzed using the gcov command and the name of a source file:
 ```bash
 $ gcov cov.c
@@ -1129,4 +1131,6 @@ $ cat cov.c.gcov
 ```
 The line counts can be seen in the first column of the output. Lines which were not executed
 are marked with hashes ‘######’.
+
+
 
