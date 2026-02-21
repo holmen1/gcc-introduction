@@ -1172,7 +1172,7 @@ file:
 $ gcc -Wall -S hello.i
 ```
 The resulting assembly language is stored in the file ‘hello.s’. Here is what the Hello
-World assembly language for an Intel x86 (i5-1135G7) processor looks like:
+World assembly language for an Intel x86-64 (i5-1135G7) processor looks like:
 ```bash
 $ cat hello.s
         .file   "hello.c"
@@ -1251,6 +1251,153 @@ $ ./a.out
 Hello World!
 ```
 
+## Examining compiled files
+
+This chapter describes several useful tools for examining the contents of executable files and object files.
+
+### Identifying files
+
+When a source file has been compiled to an object file or executable the options used to
+compile it are no longer obvious. The file command looks at the contents of an object file
+or executable and determines some of its characteristics, such as whether it was compiled with dynamic or static linking.
+For example, here is the result of the file command for previous hello executable:
+```bash
+$ file a.out
+a.out: ELF 64-bit LSB pie executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, BuildID[sha1]=3a4602274738a6750eca347e8fcf3513bb8d9223, for GNU/Linux 4.4.0, not stripped
+```
+
+The output shows that the executable file is dynamically linked, and compiled for the x86-64
+architecture. A full explanation of the output is shown below:
+
+**ELF** The internal format of the executable file (ELF stands for "Executable and
+Linking Format", other formats such as COFF "Common Object File Format"
+are used on some older operating systems (e.g. MS-DOS)).
+
+**64-bit** The word size (the book's 2004 example showed 32-bit).
+
+**LSB** Compiled for a platform with least significant byte first word-ordering, such as
+Intel and AMD x86 processors (the alternative MSB most significant byte first
+is used by other processors, such as the Motorola 680x0). Some processors
+such as Itanium and MIPS support both LSB and MSB orderings.
+
+**pie executable** Position-Independent Executable — standard on modern Linux (the book's
+2004 output just showed "executable" since PIE was not yet the default).
+
+**x86-64** The processor architecture the executable was compiled for (the book showed "Intel 80386").
+
+**version 1 (SYSV)** The version of the internal format of the file.
+
+**dynamically linked** The executable uses shared libraries (`statically linked` indicates programs
+linked statically, for example using the '-static' option).
+
+**interpreter /lib64/ld-linux-x86-64.so.2** The dynamic linker used to load shared libraries at runtime.
+
+**not stripped** The executable contains a symbol table (this can be removed with the `strip`
+command).
+
+The `file` command can also be used on object files, where it gives similar output.
+
+### Examining the symbol table
+
+As described earlier in the discussion of debugging, executables and object files can contain
+a symbol table [Compiling for debugging](#compiling-for-debuging). This table stores the
+location of functions and variables by name, and can be displayed with the nm command:
+```bash
+$ nm a.out
+00000000000020b4 r __abi_tag
+0000000000004018 B __bss_start
+0000000000004018 b completed.0
+                 w __cxa_finalize@GLIBC_2.2.5
+0000000000004008 D __data_start
+0000000000004008 W data_start
+0000000000001070 t deregister_tm_clones
+00000000000010e0 t __do_global_dtors_aux
+0000000000003dd8 d __do_global_dtors_aux_fini_array_entry
+0000000000004010 D __dso_handle
+0000000000003de0 d _DYNAMIC
+0000000000004018 D _edata
+0000000000004020 B _end
+0000000000001154 T _fini
+0000000000001130 t frame_dummy
+0000000000003dd0 d __frame_dummy_init_array_entry
+00000000000020b0 r __FRAME_END__
+0000000000003fe8 d _GLOBAL_OFFSET_TABLE_
+                 w __gmon_start__
+0000000000002014 r __GNU_EH_FRAME_HDR
+0000000000001000 T _init
+0000000000002000 R _IO_stdin_used
+                 w _ITM_deregisterTMCloneTable
+                 w _ITM_registerTMCloneTable
+                 U __libc_start_main@GLIBC_2.34
+0000000000001139 T main
+                 U puts@GLIBC_2.2.5
+00000000000010a0 t register_tm_clones
+0000000000001040 T _start
+0000000000004018 D __TMC_END__
+```
+
+Among the contents of the symbol table, the output shows that the start of the main
+function has the hexadecimal offset `1139`. Most of the symbols are for internal use by
+the compiler and operating system. A `T` in the second column indicates a function that
+is defined in the object file, while a `U` indicates a function which is undefined (and should
+be resolved by linking against another object file). In this case, `puts` is undefined —
+it will be resolved at runtime from the shared C library (`GLIBC_2.2.5`).
+A complete explanation of the output of nm can be found in the GNU Binutils manual.
+The most common use of the nm command is to check whether a library contains the
+definition of a specific function, by looking for a `T` entry in the second column against the
+function name.
+
+
+### Finding dynamically linked libraries
+
+When a program has been compiled using shared libraries it needs to load those libraries
+dynamically at run-time in order to call external functions. The command ldd examines
+an executable and displays a list of the shared libraries that it needs. These libraries are
+referred to as the shared library dependencies of the executable.
+For example, the following commands demonstrate how to find the shared library dependencies of the Hello World program:
+```bash
+$ gcc -Wall hello.c
+$ ldd a.out
+        linux-vdso.so.1 (0x00007f55412da000)
+        libc.so.6 => /usr/lib/libc.so.6 (0x00007f55410c8000)
+        /lib64/ld-linux-x86-64.so.2 => /usr/lib64/ld-linux-x86-64.so.2 (0x00007f55412dc000)
+```
+The output shows that the Hello World program depends on the C library libc (shared
+library version 6) and the dynamic loader library ld-linux (shared library version 2).
+The `linux-vdso.so.1` entry is the virtual Dynamic Shared Object — a small library
+mapped into every process by the kernel itself (not a file on disk). It allows certain
+system calls like `gettimeofday` to run in user space without a costly kernel context switch.
+
+If the program uses external libraries, such as the math library, these are also displayed.
+For example, the [calc](2_Compiling/calc.c) program (which uses the sqrt function) generates the following
+output:
+```bash
+$ gcc -Wall calc.c -lm -o calc
+$ ldd calc
+        linux-vdso.so.1 (0x00007f52a1ae3000)
+        libm.so.6 => /usr/lib/libm.so.6 (0x00007f52a19c4000)
+        libc.so.6 => /usr/lib/libc.so.6 (0x00007f52a17d3000)
+        /lib64/ld-linux-x86-64.so.2 => /usr/lib64/ld-linux-x86-64.so.2 (0x00007f52a1ae5000)
+```
+The first line shows that this program depends on the math library libm (shared library
+version 6), in addition to the C library and dynamic loader library.
+
+**Note:** On modern Linux with glibc ≥ 2.31, math functions have been merged into `libc.so.6`.
+The program will compile and run even without `-lm`:
+```bash
+$ gcc -Wall calc.c -o calc
+$ ldd calc
+        linux-vdso.so.1 (0x00007f773ae9c000)
+        libc.so.6 => /usr/lib/libc.so.6 (0x00007f773ac8a000)
+        /lib64/ld-linux-x86-64.so.2 => /usr/lib64/ld-linux-x86-64.so.2 (0x00007f773ae9e000)
+$ ./calc
+sqrt(2.0) = 1.414214
+```
+Notice that `libm.so.6` is absent — `sqrt` is resolved from `libc` itself.
+However, `-lm` should still be used for portability to other platforms (musl, BSDs, older glibc).
+
+The ldd command can also be used to examine shared libraries themselves, in order to
+follow a chain of shared library dependencies.
 
 
 
