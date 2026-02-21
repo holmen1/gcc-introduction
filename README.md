@@ -1132,5 +1132,129 @@ $ cat cov.c.gcov
 The line counts can be seen in the first column of the output. Lines which were not executed
 are marked with hashes ‘######’.
 
+## How the compiler works
+
+This chapter describes in more detail how GCC transforms source files to an executable file.
+Compilation is a multi-stage process involving several tools, including the GNU Compiler
+itself, the GNU Assembler as, and the GNU Linker ld.
+
+### An overview of the compilation process
+
+The sequence of commands executed by a single invocation of GCC consists of the following stages:
+* preprocessing (to expand macros)
+* compilation (from source code to assembly language)
+* assembly (from assembly language to machine code)
+* linking (to create the final executable)
+
+As an example, we will examine these compilation stages individually using the Hello World
+program [hello.c](11_Compiler/hello.c).
+
+Although the Hello World program is very simple it uses external header files and libraries, and so exercises all the major steps of the compilation process.
+
+### The preprocessor
+
+The first stage of the compilation process is the use of the preprocessor to expand macros
+and included header files. To perform this stage, GCC executes the following command:
+```bash
+$ cpp hello.c > hello.i
+```
+The result is a file [hello.i](11_Compiler/hello.i) which contains the source code with all macros expanded.
+In practice, the preprocessed file is not saved to disk unless the
+‘-save-temps’ option is used.
+
+### The compiler
+
+The next stage of the process is the actual compilation of preprocessed source code to
+assembly language, for a specific processor. The command-line option ‘-S’ instructs gcc to
+convert the preprocessed C source code to assembly language without creating an object
+file:
+```bash
+$ gcc -Wall -S hello.i
+```
+The resulting assembly language is stored in the file ‘hello.s’. Here is what the Hello
+World assembly language for an Intel x86 (i5-1135G7) processor looks like:
+```bash
+$ cat hello.s
+        .file   "hello.c"
+        .text
+        .section        .rodata
+.LC0:
+        .string "Hello World!"
+        .text
+        .globl  main
+        .type   main, @function
+main:
+.LFB0:
+        .cfi_startproc
+        pushq   %rbp
+        .cfi_def_cfa_offset 16
+        .cfi_offset 6, -16
+        movq    %rsp, %rbp
+        .cfi_def_cfa_register 6
+        leaq    .LC0(%rip), %rax
+        movq    %rax, %rdi
+        call    puts@PLT
+        movl    $0, %eax
+        popq    %rbp
+        .cfi_def_cfa 7, 8
+        ret
+        .cfi_endproc
+.LFE0:
+        .size   main, .-main
+        .ident  "GCC: (GNU) 15.2.1 20260103"
+        .section        .note.GNU-stack,"",@progbits
+```
+Note that the assembly language contains a call to the external function puts (GCC automatically
+replaces `printf("...\n")` with the simpler `puts("...")` when no format specifiers are used).
+
+### The assembler
+
+The purpose of the assembler is to convert assembly language into machine code and generate an object file. When there are calls to external functions in the assembly source file,
+the assembler leaves the addresses of the external functions undefined, to be filled in later
+by the linker. The assembler can be invoked with the following command line:
+```bash
+$ as hello.s -o hello.o
+```
+As with GCC, the output file is specified with the ‘-o’ option. The resulting file ‘hello.o’
+contains the machine instructions for the Hello World program, with an undefined reference
+to printf.
+
+### The linker
+
+The final stage of compilation is the linking of object files to create an executable. In
+practice, an executable requires many external functions from system and C run-time (crt)
+libraries. Consequently, the actual link commands used internally by GCC are complicated.
+For example, on a modern 64-bit system (GCC 15, x86-64):
+```bash
+$ ld -dynamic-linker /lib64/ld-linux-x86-64.so.2 -pie \
+    /usr/lib/Scrt1.o /usr/lib/crti.o \
+    /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtbeginS.o \
+    -L/usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1 -L/usr/lib \
+    hello.o \
+    -lgcc --as-needed -lgcc_s --no-as-needed -lc \
+    /usr/lib/gcc/x86_64-pc-linux-gnu/15.2.1/crtendS.o \
+    /usr/lib/crtn.o -o hello
+```
+Notable differences: 64-bit dynamic linker (`ld-linux-x86-64.so.2`), PIE startup files
+(`Scrt1.o`, `crtbeginS.o`) because `--enable-default-pie` is now standard, and `-pie` flag
+for position-independent executables.
+
+Fortunately there is never any need to type the command above directly—the entire linking
+process is handled transparently by gcc when invoked as follows:
+```bash
+$ gcc hello.o
+```
+This links the object file ‘hello.o’ to the C standard library, and produces an executable
+file ‘a.out’:
+```bash
+$ ./a.out
+Hello World!
+```
+
+
+
+
+
+
 
 
