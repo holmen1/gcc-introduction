@@ -1,3 +1,4 @@
+<a id="top"></a>
 # An Introduction to GCC
 
 A single invocation of GCC consists of the following stages:
@@ -106,6 +107,7 @@ So ```$ gcc calc.c -lm -o calc``` is equivalent to above.
 In general, the compiler option '-lNAME' will attempt to link object files with a library file
 'libNAME.a' in the standard library directories.
 
+<sub>[Back to top](#top)</sub>
 
 ## Compilation options
 
@@ -288,6 +290,8 @@ The specific language standard used by GCC can be controlled with the '-std' opt
 $ gcc -std=c99 -Wall main.c
 ```
 
+<sub>[Back to top](#top)</sub>
+
 ## Using the preprocessor
 
 The preprocessor `cpp` expands macros in source files before they are compiled.
@@ -315,6 +319,8 @@ $ gcc -Wall dtest.c
 $ ./a.out
 Running...
 ```
+
+<sub>[Back to top](#top)</sub>
 
 ## Compiling for debugging
 
@@ -466,6 +472,8 @@ Continuing.
 [Inferior 1 (process 5161) exited with code 0377]
 ```
 Note that the exit code is shown in octal (0377 base 8 = 255 in base 10).
+
+<sub>[Back to top](#top)</sub>
 
 ## Compiling with optimization
 
@@ -717,6 +725,7 @@ uninit.c:4: warning: ‘s’ might be used uninitialized in this function
 ```
 This correctly detects the possibility of the variable s being used without being defined.
 
+<sub>[Back to top](#top)</sub>
 
 ## Troubleshooting
 
@@ -933,6 +942,8 @@ will limit subsequent processes to 4 megabytes of virtual memory (4096k).
 An artificially low limit can be used to simulate running out of memory
 — a well-written program should not crash in this case.
 
+<sub>[Back to top](#top)</sub>
+
 ## Compiler-related tools
 
 ### Creating a library with the GNU archiver
@@ -1142,6 +1153,8 @@ $ cat cov.c.gcov
 The line counts can be seen in the first column of the output. Lines which were not executed
 are marked with hashes ‘######’.
 
+<sub>[Back to top](#top)</sub>
+
 ## How the compiler works
 
 This chapter describes in more detail how GCC transforms source files to an executable file.
@@ -1260,6 +1273,8 @@ file ‘a.out’:
 $ ./a.out
 Hello World!
 ```
+
+<sub>[Back to top](#top)</sub>
 
 ## Examining compiled files
 
@@ -1408,6 +1423,8 @@ However, `-lm` should still be used for portability to other platforms (musl, BS
 
 The ldd command can also be used to examine shared libraries themselves, in order to
 follow a chain of shared library dependencies.
+
+<sub>[Back to top](#top)</sub>
 
 
 
