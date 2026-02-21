@@ -17,6 +17,16 @@ Licensed under the GNU Free Documentation License v1.2 or later.
 > 
 > — Richard M. Stallman, Foreword
 
+### Contents
+[Compiling a C program](#compiling-a-c-program)  
+[Compilation options](#compilation-options)  
+[Using the preprocessor](#using-the-preprocessor)  
+[Compiling for debugging](#compiling-for-debugging)  
+[Compiling with optimization](#compiling-with-optimization)  
+[Troubleshooting](#troubleshooting)  
+[Compiler-related tools](#compiler-related-tools)  
+[How the compiler works](#how-the-compiler-works)  
+[Examining compiled files](#examining-compiled-files)
 
 
 ## Compiling a C program
@@ -306,7 +316,7 @@ $ ./a.out
 Running...
 ```
 
-## Compiling for debuging
+## Compiling for debugging
 
 GCC provides the ‘-g’ debug option to store additional debugging information in object
 files and executables. This debugging information allows errors to be traced back from a
@@ -1300,7 +1310,7 @@ The `file` command can also be used on object files, where it gives similar outp
 ### Examining the symbol table
 
 As described earlier in the discussion of debugging, executables and object files can contain
-a symbol table [Compiling for debugging](#compiling-for-debuging). This table stores the
+a symbol table [Compiling for debugging](#compiling-for-debugging). This table stores the
 location of functions and variables by name, and can be displayed with the nm command:
 ```bash
 $ nm a.out
